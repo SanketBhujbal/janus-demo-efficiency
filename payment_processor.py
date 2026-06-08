@@ -111,14 +111,19 @@ def sample_inputs() -> dict:
         for i in range(1_500)
     ]
 
-    # Pattern 3: 1,500 charges — O(n²) = 2.25M comparisons, ~180ms/call
+    # Pattern 3: 25,000 charges — O(n²) = 625M comparisons.
+    # One call takes ~90-120s on typical hardware, which EXCEEDS the verifier's
+    # 60-second safety timeout. The benchmark never produces BENCH_RESULT →
+    # JANUS refuses to apply the change without verified evidence.
+    # Demo story: "original code is so slow that even one benchmark call timed
+    # out — JANUS will not merge an optimization it cannot verify."
     charges = [
         {
             "id":          f"chg-{i:05d}",
             "merchant_id": i % 200,
             "amount":      round((i % 23) * 0.50, 2),
         }
-        for i in range(1_500)
+        for i in range(25_000)
     ]
 
     # Pattern 4: 50,000 log lines (for regex compile demo)
