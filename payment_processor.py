@@ -45,34 +45,28 @@ def build_settlement_csv(rows: list) -> str:
 
 # ---------------------------------------------------------------------------
 # Pattern 3: O(n²) — nested loop over the same charges list.
-#
-# NOTE: This function intentionally returns BOTH directions of each pair —
-#   (chg_a.id, chg_b.id) AND (chg_b.id, chg_a.id) — matching the existing
-#   downstream consumer that de-duplicates at the caller level.
-# Any optimization that groups by key produces each pair only once,
-# changing the contract → JANUS correctly REJECTS it (output mismatch).
-# This demonstrates the safety net: JANUS never applies a refactoring that
-# changes observable behaviour, even if it looks faster.
-#
 # Rule: efficiency.nested-loop-same-iterable
+#
+# JANUS will attempt to optimise this with groupby / defaultdict + permutations.
+# The O(n) optimisation is FASTER but produces different output: it omits the
+# self-comparison entries (chg_id, chg_id) that the original loop includes
+# (because the original does NOT skip when chg_a is chg_b).
+# Benchmark will report outputs_match=False → JANUS rejects the refactoring.
+# This is a deliberate demo of the safety net: JANUS never merges a refactoring
+# that changes observable behaviour, even if it is measurably faster.
 # ---------------------------------------------------------------------------
 def detect_duplicate_charge_pairs(
     charges: list,
 ) -> list:
-    """Detect potentially duplicate charge submissions.
-
-    Returns both (a, b) and (b, a) for each matching pair — callers rely
-    on this bidirectional output for their own dedup logic.
-    """
+    """Scan every (charge_a, charge_b) pair — including a charge against itself —
+    and collect entries where merchant_id and amount match."""
     pairs = []
     for chg_a in charges:
-        for chg_b in charges:               # O(n²) — iterates full list per charge
-            if chg_a is chg_b:
-                continue
+        for chg_b in charges:               # O(n²) — no self-exclusion guard
             if (chg_a["merchant_id"] == chg_b["merchant_id"]
                     and chg_a["amount"] == chg_b["amount"]):
-                pairs.append((chg_a["id"], chg_b["id"]))
-    return pairs   # intentionally bidirectional: includes (a,b) AND (b,a)
+                pairs.append((chg_a["id"], chg_b["id"]))   # includes (x, x) self-pairs
+    return pairs
 
 
 # ---------------------------------------------------------------------------
