@@ -11,7 +11,6 @@ Designed for the JANUS efficiency demo:
 from __future__ import annotations
 
 import re
-from typing import Any
 
 
 # ---------------------------------------------------------------------------
@@ -20,9 +19,9 @@ from typing import Any
 # Rule: efficiency.linear-search-in-loop
 # ---------------------------------------------------------------------------
 def find_flagged_account_ids(
-    all_account_ids: list[int],
-    flagged_ids: list[int],
-) -> list[int]:
+    all_account_ids: list,
+    flagged_ids: list,
+) -> list:
     """Return account IDs that appear on the fraud / blocked list."""
     result = []
     for account_id in all_account_ids:
@@ -36,7 +35,7 @@ def find_flagged_account_ids(
 # Fix: collect rows in a list, join once at the end.
 # Rule: efficiency.string-concat-in-loop
 # ---------------------------------------------------------------------------
-def build_settlement_csv(rows: list[list[Any]]) -> str:
+def build_settlement_csv(rows: list) -> str:
     """Serialize a settlement batch to CSV for the clearing house."""
     report = ""
     for row in rows:
@@ -58,8 +57,8 @@ def build_settlement_csv(rows: list[list[Any]]) -> str:
 # Rule: efficiency.nested-loop-same-iterable
 # ---------------------------------------------------------------------------
 def detect_duplicate_charge_pairs(
-    charges: list[dict[str, Any]],
-) -> list[tuple[str, str]]:
+    charges: list,
+) -> list:
     """Detect potentially duplicate charge submissions.
 
     Returns both (a, b) and (b, a) for each matching pair — callers rely
@@ -82,7 +81,7 @@ def detect_duplicate_charge_pairs(
 # Rule: efficiency.regex-recompile-in-loop
 # (Included for scan completeness; capped by max_findings=3 in demo mode.)
 # ---------------------------------------------------------------------------
-def mask_card_numbers_in_audit_log(lines: list[str]) -> list[str]:
+def mask_card_numbers_in_audit_log(lines: list) -> list:
     """Mask card PANs in audit log lines for PCI-DSS compliance."""
     masked = []
     for line in lines:
